@@ -24,7 +24,7 @@ function createPaths() {
 		var path = createBlob(view.size * Point.random(), radius, points);
 		var lightness = (Math.random() - 0.5) * 0.4 + 0.4;
 		var hue = Math.random() * 360;
-		path.fillColor = { hue: hue, saturation: 1, lightness: lightness };
+     path.fillColor = { hue: hue, saturation: 1, lightness: lightness };
 		path.strokeColor = 'black';
 	};
 }
@@ -40,7 +40,17 @@ function createBlob(center, maxRadius, points) {
 		path.add(center + delta);
 	}
 	path.smooth();
+    path.fillColor = {
+		gradient: {
+			stops: [['yellow', 0.05], ['red', 0.2], ['black', 1]],
+			radial: true
+		},
+		// gradient only applies if return oath is removed
+		origin: path.position,
+		destination: path.bounds.rightCenter
+};
 	return path;
+	// if return path is removed, gradient comes back
 }
 
 var segment, path;

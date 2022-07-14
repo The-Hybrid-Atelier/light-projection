@@ -10,4 +10,8 @@ var drawGridRects = function(num_rectangles_wide, num_rectangles_tall, boundingR
     }
 }
 
+drawGridRects.onMouseDrag = function(event) {
+    group1.position += event.delta;
+}
+
 drawGridRects(4, 4, paper.view.bounds);
