@@ -5,7 +5,7 @@ function drawBlurryCircle(center, radius, blurAmount, color) {
         shadowColor: color,
         shadowBlur: blurAmount,
         // set a fill color to make sure that the shadow is displayed
-        fillColor: 'white',
+        fillColor: 'black',
         // use blendmode to hide the fill and only see the shadow
         blendMode: 'multiply'
     });
