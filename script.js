@@ -9,6 +9,7 @@ myPath.strokeWidth=5;
 
 function onMouseDrag(event){
 myPath.add(event.point);
+console.log("dragging");
 }
 
 /* MIDI BOARD INTEGRATION */
@@ -27,5 +28,9 @@ ctrl.on("message", function(e) {
   	else if (newStrokeWidth < oldStrokeWidth){myPath.strokeWidth-= Math.abs(newStrokeWidth - oldStrokeWidth)}
   	oldStrokeWidth = newStrokeWidth;
   	console.log(newStrokeWidth, oldStrokeWidth);
+  }
+  else if (e.dataType == "pad" && e.track == 0){
+
+    onMouseDrag(myPath);
   }
 });

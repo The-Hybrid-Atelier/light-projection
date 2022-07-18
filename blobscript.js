@@ -1,7 +1,7 @@
 var values = {
 	paths: 1,
-	minPoints: 10,
-	maxPoints: 15,
+	minPoints: 4,
+	maxPoints: 8,
 	minRadius: 30,
 	maxRadius: 90
 };
@@ -22,9 +22,9 @@ function createPaths() {
 		var radius = values.minRadius + Math.random() * radiusDelta;
 		var points = values.minPoints + Math.floor(Math.random() * pointsDelta);
 		var path = createBlob(view.size * Point.random(), radius, points);
+		console.log("path in create paths: ", path);
 		var lightness = (Math.random() - 0.5) * 0.4 + 0.4;
 		var hue = Math.random() * 360;
-     // path.fillColor = { hue: hue, saturation: 1, lightness: lightness };
 		path.strokeColor = 'black';
 	};
 }
@@ -42,15 +42,13 @@ function createBlob(center, maxRadius, points) {
 	path.smooth();
     path.fillColor = {
 		gradient: {
-			stops: [['yellow', 0.05], ['red', 0.2], ['black', 1]],
+			stops: [['yellow', 0.10], ['red', 0.50], ['black', 1]],
 			radial: true
 		},
-		// gradient only applies if return oath is removed, 
 		origin: path.position,
 		destination: path.bounds.rightCenter
 };
 	return path;
-	// if return path is removed, gradient comes back
 }
 
 var segment, path;
@@ -58,6 +56,7 @@ var movePath = false;
 function onMouseDown(event) {
 	segment = path = null;
 	var hitResult = project.hitTest(event.point, hitOptions);
+	console.log("Event point ", event.point);
 	if (!hitResult)
 		return;
 
@@ -86,7 +85,10 @@ function onMouseDown(event) {
 function onMouseMove(event) {
 	project.activeLayer.selected = false;
 	if (event.item)
+	{
+		console.log("Event Item: ", event.item)
 		event.item.selected = true;
+	}
 }
 
 function onMouseDrag(event) {
