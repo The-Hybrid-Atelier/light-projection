@@ -21,6 +21,7 @@ $(function(){
       radius: 20,
       fillColor: "blue",
       contourScale: 1,
+      clipped: false,
       onMouseDrag: function(event){
         this.translate(event.delta)
       },
@@ -40,7 +41,11 @@ $(function(){
       })
 
       origin = paper.project.getItem({name: "origin"})
+      grid = paper.project.getItem({name: "grid"})
+      g = new paper.Group({name:"clipMask"})
+      g.addChild(grid)
       contour = new paper.Path({
+        parent: g,
         name: "contour",
         fillColor: "red",
         segments: path, 
@@ -48,7 +53,8 @@ $(function(){
       })
       contour.scale(origin.contourScale)
       contour.simplify(5)
-      contour.sendToBack()
+      origin.bringToFront()
+      contour.clipMask = origin.clipped
 
       // console.log(path)
       // l.position = paper.view.center
