@@ -1,8 +1,8 @@
 
 URL = "ws://162.243.120.86:3034"
+
 $(function(){
   console.log("JS Main Function");
-
   // Create WebSocket connection.
   let socket = new WebSocket(URL);
 
@@ -15,6 +15,17 @@ $(function(){
     // PROTOCOL STEP 2: SUBSCRIBE
     message = {subscribe:"depthai", service: "contour"}
     socket.send(JSON.stringify(message));
+
+    c = new paper.Path.Circle({
+      name: "origin",
+      radius: 20,
+      fillColor: "blue",
+      contourScale: 1,
+      onMouseDrag: function(event){
+        this.translate(event.delta)
+      },
+      position: paper.view.center
+    })
   };
 
   socket.onmessage = function(event) {
@@ -23,12 +34,24 @@ $(function(){
     if("data" in path){
      
       path = _.map(path.data, function(p){ pt = p[0]; return new paper.Point(pt[0], pt[1])})
-      l = new paper.Path({
-        fillColor: "red",
-        segments: path
+      prev = paper.project.getItems({name: "contour"})
+      _.each(prev, function(el, i) {
+        el.remove()
       })
-      console.log(path)
-      l.position = paper.view.center
+
+      origin = paper.project.getItem({name: "origin"})
+      contour = new paper.Path({
+        name: "contour",
+        fillColor: "red",
+        segments: path, 
+        position: origin.position
+      })
+      contour.scale(origin.contourScale)
+      contour.simplify(5)
+      contour.sendToBack()
+
+      // console.log(path)
+      // l.position = paper.view.center
     }
     
     
