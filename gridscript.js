@@ -6,6 +6,7 @@ for (x = 0; x < 10; x++) {
     for (y = 0; y < 10; y++) {
         rects[i] = new Path.Rectangle(new Point(y * 150, x * 100), new Point(150 + (y * 150), 100 + (x * 100)));
         rects[i].strokeColor = "black";
+        rects[i].strokeWidth = 1;
         i += 1;
     }
 }
@@ -16,6 +17,10 @@ var ctrl = new LaunchControl();
 ctrl.open().then(function() {
   ctrl.led("even", "dark red");
 });
+
+var oldStrokeWidth = 0;
+var newStrokeWidth = 0;
+var iter = 0;
 ctrl.on("message", function(e) {
   if (e.dataType == "knob1" && e.track == 1){
     console.log("I AM DETECTING KNOB1");
@@ -50,5 +55,17 @@ ctrl.on("message", function(e) {
         clicked_values.splice(index, 1);
 
   }
- console.log(clicked_values);
+
+  if (e.dataType == "knob1" && e.track == 2){
+        console.log("DETECTING KNOB1 TRACK 2")
+       for( iter = 0; iter < rects.length; iter++){
+            console.log(iter, rects.length, rects[iter], rects[iter].strokeWidth, newStrokeWidth, oldStrokeWidth);
+            newStrokeWidth = e.value;
+            if (newStrokeWidth > oldStrokeWidth) {rects[iter].strokeWidth+= Math.abs(newStrokeWidth - oldStrokeWidth)}
+            else if (newStrokeWidth < oldStrokeWidth){rects[iter].strokeWidth-= Math.abs(newStrokeWidth - oldStrokeWidth)}
+            
+        }
+    oldStrokeWidth = newStrokeWidth;
+
+  }
 });
