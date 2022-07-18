@@ -22,6 +22,8 @@ $(function(){
       fillColor: "blue",
       contourScale: 1,
       clipped: false,
+      capture: true,
+      gridScaling: 1,
       onMouseDrag: function(event){
         this.translate(event.delta)
       },
@@ -31,35 +33,43 @@ $(function(){
 
   socket.onmessage = function(event) {
     // console.log(event.data);
-    path = JSON.parse(event.data)
-    if("data" in path){
-     
-      path = _.map(path.data, function(p){ pt = p[0]; return new paper.Point(pt[0], pt[1])})
-      prev = paper.project.getItems({name: "contour"})
-      _.each(prev, function(el, i) {
-        el.remove()
-      })
+    origin = paper.project.getItem({name: "origin"})
 
-      origin = paper.project.getItem({name: "origin"})
-      grid = paper.project.getItem({name: "grid"})
-      g = new paper.Group({name:"clipMask"})
-      g.addChild(grid)
-      contour = new paper.Path({
-        parent: g,
-        name: "contour",
-        fillColor: "red",
-        segments: path, 
-        position: origin.position
-      })
-      contour.scale(origin.contourScale)
-      contour.simplify(5)
-      origin.bringToFront()
-      contour.clipMask = origin.clipped
+    if(origin.capture){
+      path = JSON.parse(event.data)
+      if("data" in path){
+       
+        path = _.map(path.data, function(p){ pt = p[0]; return new paper.Point(pt[0], pt[1])})
+        prev = paper.project.getItems({name: "contour"})
+        _.each(prev, function(el, i) {
+          el.remove()
+        })
 
-      // console.log(path)
-      // l.position = paper.view.center
+        
+        grid = paper.project.getItem({name: "grid"})
+        g = new paper.Group({name:"clipMask"})
+        
+        contour = new paper.Path({
+          name: "contour",
+          fillColor: "red",
+          segments: path, 
+          position: origin.position
+        })
+        contour.scale(origin.contourScale)
+        contour.simplify(5)
+
+        grid.fitBounds(contour.bounds.expand(800))
+        grid.scaling = new paper.Point(origin.gridScaling,origin.gridScaling)
+        g.addChild(grid)
+        g.addChild(contour)
+        
+        origin.bringToFront()
+        contour.clipMask = origin.clipped
+
+        // console.log(path)
+        // l.position = paper.view.center
+      }
     }
-    
     
   };
 

@@ -143,12 +143,13 @@ def click_event(event, x, y, flags, params):
  
         # displaying the coordinates
         # on the Shell
-        print(x, ' ', y)
+        
  
         # displaying the coordinates
         # on the image window
         font = cv2.FONT_HERSHEY_SIMPLEX
         depth = frame[y, x]
+        print(x, ' ', y, ' ', depth)
      
         cv2.putText(frame, str(depth),
                     (x,y), font, 1,
@@ -173,59 +174,54 @@ with dai.Device(pipeline) as device:
 
         # Threshold
         cv2.namedWindow(window_name)
-        # cv2.createTrackbar(trackbar_type, window_name , 3, max_type, threshold)
-        # cv2.createTrackbar(trackbar_value, window_name , 0, max_value, threshold)
-        # cv2.createTrackbar(title_trackbar_element_shape, window_name, 0, max_elem, erosion)
-        # cv2.createTrackbar(title_trackbar_kernel_size, window_name, 0, max_kernel_size, erosion)
-        # cv2.createTrackbar(title_trackbar_element_shape2, window_name, 0, max_elem, dilatation)
-        # cv2.createTrackbar(title_trackbar_kernel_size2, window_name, 0, max_kernel_size, dilatation)
-        
-        #0: Binary
-        #1: Binary Inverted
-        #2: Threshold Truncated
-        #3: Threshold to Zero
-        #4: Threshold to Zero Inverted
-        # Shelf Removal
-        SHELF = 63
-        BACKGROUND = 50
-        _, frame = cv2.threshold(frame, SHELF, max_binary_value, cv2.THRESH_TOZERO_INV )
-        _, frame = cv2.threshold(frame, BACKGROUND, max_binary_value, cv2.THRESH_TOZERO )
 
-        # EROSION TO REMOVE SPECKLE
-        erosion_size = 4
-        element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * erosion_size + 1, 2 * erosion_size + 1),
-                                       (erosion_size, erosion_size))
-        frame = cv2.erode(frame, element)
 
-        # DILATION TO REFINE FIGURE
-        dilatation_size = 3
-        element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * dilatation_size + 1, 2 * dilatation_size + 1),
-                                       (dilatation_size, dilatation_size))
-        frame = cv2.dilate(frame, element)
-
-       
-        contours, hierarchy = cv2.findContours(image=frame, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_NONE)
-
-        # image_copy = image.copy()
-        cv2.drawContours(image=frame, contours=contours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
-        
+        CALIBRATED = True
+        BACKGROUND = 60
+        SHELF = 67
         
 
-        if len(contours) != 0:
-            # draw in blue the contours that were founded
-            cv2.drawContours(frame, contours, -1, 255, 3)
+        if CALIBRATED:
+            # Shelf Removal
+            _, frame = cv2.threshold(frame, SHELF, max_binary_value, cv2.THRESH_TOZERO_INV )
+            _, frame = cv2.threshold(frame, BACKGROUND, max_binary_value, cv2.THRESH_TOZERO )
 
-            # find the biggest countour (c) by the area
-            c = max(contours, key = cv2.contourArea)
-            x,y,w,h = cv2.boundingRect(c)
+        
+            # EROSION TO REMOVE SPECKLE
+            erosion_size = 4
+            element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * erosion_size + 1, 2 * erosion_size + 1),
+                                           (erosion_size, erosion_size))
+            frame = cv2.erode(frame, element)
 
-            # draw the biggest contour (c) in green
-            cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
+            # DILATION TO REFINE FIGURE
+            dilatation_size = 3
+            element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * dilatation_size + 1, 2 * dilatation_size + 1),
+                                           (dilatation_size, dilatation_size))
+            frame = cv2.dilate(frame, element)
 
-            # SEND A MESSAGE
-            jws.send_event("contour", {"data": c.tolist()})
+           
+            contours, hierarchy = cv2.findContours(image=frame, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_NONE)
 
-        cv2.imshow(window_name, frame)
+            # image_copy = image.copy()
+            cv2.drawContours(image=frame, contours=contours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
+            
+            
+
+            if len(contours) != 0:
+                # draw in blue the contours that were founded
+                cv2.drawContours(frame, contours, -1, 255, 3)
+
+                # find the biggest countour (c) by the area
+                c = max(contours, key = cv2.contourArea)
+                x,y,w,h = cv2.boundingRect(c)
+
+                # draw the biggest contour (c) in green
+                cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
+
+                # SEND A MESSAGE
+                jws.send_event("contour", {"data": c.tolist()})
+
+            cv2.imshow(window_name, frame)
         # Available color maps: https://docs.opencv.org/3.4/d3/d50/group__imgproc__colormap.html
         # frame = cv2.applyColorMap(frame, cv2.COLORMAP_JET)
         # cv2.imshow("disparity_color", frame)

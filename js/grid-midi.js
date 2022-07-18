@@ -4,7 +4,11 @@ var x = 0;
 var y = 0;
 for (x = 0; x < 8; x++) {
     for (y = 0; y < 8; y++) {
-        rects[i] = new Path.Rectangle(new Point(y * 150, x * 100), new Point(150 + (y * 150), 100 + (x * 100)));
+        rects[i] = new paper.Path.Rectangle({
+           parent: gridGroup,
+           from: new paper.Point(y * 150, x * 100), 
+           to: new paper.Point(150 + (y * 150), 100 + (x * 100))
+          });
         rects[i].strokeColor = "white";
         rects[i].fillColor = "black";
         rects[i].strokeWidth = 1;
