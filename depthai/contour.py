@@ -51,15 +51,16 @@ max_type = 4
 max_binary_value = 255
 trackbar_type = 'Type: \n 0: Binary \n 1: Binary Inverted \n 2: Truncate \n 3: To Zero \n 4: To Zero Inverted'
 trackbar_value = 'Value'
-window_name = 'Threshold Demo'
+window_name = 'contour'
+
 def threshold(val):
     #0: Binary
     #1: Binary Inverted
     #2: Threshold Truncated
     #3: Threshold to Zero
     #4: Threshold to Zero Inverted
-    threshold_type = cv2.getTrackbarPos(trackbar_type, window_name)
-    threshold_value = cv2.getTrackbarPos(trackbar_value, window_name)
+    # threshold_type = cv2.getTrackbarPos(trackbar_type, window_name)
+    # threshold_value = cv2.getTrackbarPos(trackbar_value, window_name)
     _, dst = cv2.threshold(frame, threshold_value, max_binary_value, threshold_type )
     # cv2.imshow(window_name, dst)
     return dst
@@ -118,13 +119,48 @@ jws.connect()
 
 
 
-
+# function to display the coordinates of
+# of the points clicked on the image
+def click_event(event, x, y, flags, params):
+ 
+    # checking for left mouse clicks
+    if event == cv2.EVENT_LBUTTONDOWN:
+ 
+        # displaying the coordinates
+        # on the Shell
+        print(x, ' ', y)
+ 
+        # displaying the coordinates
+        # on the image window
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(frame, str(x) + ',' +
+                    str(y), (x,y), font,
+                    1, (255, 0, 0), 2)
+        cv2.imshow(window_name, frame)
+ 
+    # checking for right mouse clicks    
+    if event==cv2.EVENT_RBUTTONDOWN:
+ 
+        # displaying the coordinates
+        # on the Shell
+        print(x, ' ', y)
+ 
+        # displaying the coordinates
+        # on the image window
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        depth = frame[y, x]
+     
+        cv2.putText(frame, str(depth),
+                    (x,y), font, 1,
+                    (255, 255, 0), 2)
+        cv2.imshow(window_name, frame)
 
 # Connect to device and start pipeline
 with dai.Device(pipeline) as device:
 
     # Output queue will be used to get the disparity frames from the outputs defined above
     q = device.getOutputQueue(name="disparity", maxSize=4, blocking=False)
+    
 
     while True:
         inDisparity = q.get()  # blocking call, will wait until a new data has arrived
@@ -133,24 +169,45 @@ with dai.Device(pipeline) as device:
         frame = (frame * (255 / depth.initialConfig.getMaxDisparity())).astype(np.uint8)
 
         cv2.imshow("disparity", frame)
-        
+        cv2.setMouseCallback('disparity', click_event)
 
         # Threshold
         cv2.namedWindow(window_name)
-        cv2.createTrackbar(trackbar_type, window_name , 3, max_type, threshold)
-        cv2.createTrackbar(trackbar_value, window_name , 0, max_value, threshold)
-        cv2.createTrackbar(title_trackbar_element_shape, window_name, 0, max_elem, erosion)
-        cv2.createTrackbar(title_trackbar_kernel_size, window_name, 0, max_kernel_size, erosion)
-        cv2.createTrackbar(title_trackbar_element_shape2, window_name, 0, max_elem, dilatation)
-        cv2.createTrackbar(title_trackbar_kernel_size2, window_name, 0, max_kernel_size, dilatation)
-    
-        frame = threshold(0)
-        frame = dilatation(0)
-        frame = erosion(0)
+        # cv2.createTrackbar(trackbar_type, window_name , 3, max_type, threshold)
+        # cv2.createTrackbar(trackbar_value, window_name , 0, max_value, threshold)
+        # cv2.createTrackbar(title_trackbar_element_shape, window_name, 0, max_elem, erosion)
+        # cv2.createTrackbar(title_trackbar_kernel_size, window_name, 0, max_kernel_size, erosion)
+        # cv2.createTrackbar(title_trackbar_element_shape2, window_name, 0, max_elem, dilatation)
+        # cv2.createTrackbar(title_trackbar_kernel_size2, window_name, 0, max_kernel_size, dilatation)
+        
+        #0: Binary
+        #1: Binary Inverted
+        #2: Threshold Truncated
+        #3: Threshold to Zero
+        #4: Threshold to Zero Inverted
+        # Shelf Removal
+        SHELF = 63
+        BACKGROUND = 50
+        _, frame = cv2.threshold(frame, SHELF, max_binary_value, cv2.THRESH_TOZERO_INV )
+        _, frame = cv2.threshold(frame, BACKGROUND, max_binary_value, cv2.THRESH_TOZERO )
+
+        # EROSION TO REMOVE SPECKLE
+        erosion_size = 4
+        element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * erosion_size + 1, 2 * erosion_size + 1),
+                                       (erosion_size, erosion_size))
+        frame = cv2.erode(frame, element)
+
+        # DILATION TO REFINE FIGURE
+        dilatation_size = 3
+        element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * dilatation_size + 1, 2 * dilatation_size + 1),
+                                       (dilatation_size, dilatation_size))
+        frame = cv2.dilate(frame, element)
+
+       
         contours, hierarchy = cv2.findContours(image=frame, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_NONE)
 
         # image_copy = image.copy()
-        # cv2.drawContours(image=frame, contours=contours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
+        cv2.drawContours(image=frame, contours=contours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
         
         
 
