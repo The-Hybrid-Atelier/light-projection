@@ -87,13 +87,15 @@ $(function(){
       console.log(e.value)
       if(e.value < 64 && e.value%8 == 0)
       {
-          rects[e.value].selected = true;
-          if(rects[e.value].fillColor != "white")
-              rects[e.value].fillColor = "grey";
+        for (var row_rects = 0; row_rects < 8; row_rects++){
+          // rects[e.value].selected = true;
+          if(rects[e.value + row_rects].fillColor != "white")
+              rects[e.value + row_rects].fillColor = "grey";
           if (rect_value != -1){
-              rects[rect_value].selected = false;
-              if(rects[rect_value].fillColor != "white")
-                  rects[rect_value].fillColor = "black";}
+              rects[rect_value + row_rects].selected = false;
+              if(rects[rect_value +row_rects].fillColor != "white")
+                  rects[rect_value +row_rects].fillColor = "black";}
+            }
           rect_value = e.value;
       }
     }
