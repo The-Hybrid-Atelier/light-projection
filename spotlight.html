@@ -2,23 +2,22 @@
 <html>
 
 <head>
-  <title>Grid Cue Paper.Js</title>
+    <title>Spotlight Cue</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.4/underscore-min.js"></script>
 
     <script type="text/javascript" src="js/paperjs-v0.12.15/dist/paper-full.js"></script>
     <script type="text/javascript" src="launch/build/launch-control.js"></script>
-    <script type="text/javascript" src="js/gridscript.js" canvas="canvas"></script>
+    <script type="text/paperscript" src="js/spotlightscript.js" canvas="canvas"></script>
     <script type="text/javascript" src="js/haws.js" canvas="canvas"></script>
-
-  <style>
-    body, html, canvas {
-      height: 100%;
-      width: 100%;
-      overflow: hidden !important;
-      background:  black;
-    }
-  </style>
+    <style>
+        #canvas {
+            border: 1px solid black;
+            height: 100vh;
+            width: 100vw;
+            background-color: black;
+        }
+    </style>
 </head>
 
 <body>
