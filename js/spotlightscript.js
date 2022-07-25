@@ -26,24 +26,27 @@ var mouth = new Path.Circle({
     fillColor: 'white'
 });
 
-var neck = new Path.Circle({
-    center: [945, 509],
-    radius: 30,
-    visible: true,
-    fillColor: 'white'
+var chest = new Path({
+    segments: [[755, 648], [1028.5, 650], [1060, 840], [770, 840]],
+    fillColor: 'white',
+    closed: true,
+    strokeWidth: 3,
+    visible: false,
+    strokeJoin: 'round'
 });
 
-var chest = new Path.Circle({
-    center: [945, 509],
-    radius: 30,
-    visible: true,
-    fillColor: 'white'
-});
+// var neck = new Path.Circle({
+//     center: [945, 509],
+//     radius: 30,
+//     // visible: true,
+//     fillColor: 'white'
+// });
 
 var flagA = 0
 var flagB = 0
 var flagC = 0
 var flagD = 0
+var flagE = 0
 function onKeyDown(event) {
 	if(event.key == 'a') {
         if(flagA == 0) {
@@ -79,6 +82,15 @@ function onKeyDown(event) {
         }else {
             mouth.visible = false;
             flagD = 0
+        }
+    }
+    if(event.key == 'e') {
+        if(flagE == 0) {
+            chest.visible = true;
+            flagE = 1
+        }else {
+            chest.visible = false;
+            flagE = 0
         }
     }
 }
