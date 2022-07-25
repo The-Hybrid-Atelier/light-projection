@@ -1,60 +1,63 @@
 var eye1 = new Path.Circle({
-    radius: 40,
-  	visible: true,
+    radius: 50,
+  	visible: false,
     position: (0,500),
     fillColor: 'white'
 });
 
 var eye2 = new Path.Circle({
-    radius: 20,
-  	visible: true,
-    position: (100, 200),
+    radius: 50,
+  	visible: false,
+    position: (0, 200),
     fillColor: 'white'
 });
 
 var nose = new Path.Circle({
     center: view.center,
     radius: 50,
-  	visible: true,
+  	visible: false,
     fillColor: 'white'
 });
 
-var mouth = new Path.Circle({
-    center: view.center,
-    radius: 10,
-  	visible: true,
-    position: (0, -200),
-    fillColor: 'white'
-});
+// var mouth = new Path.Circle({
+//     center: view.center,
+//     radius: 50,
+//   	visible: true,
+//     position: (0, -800),
+//     fillColor: 'green'
+// });
 
+var flagA = 0
+var flagB = 0
+var flagC = 0
+function onKeyDown(event) {
+	if(event.key == 'a') {
+        if(flagA == 0) {
+            eye1.visible = true;
+            flagA = 1
+        }else {
+            eye1.visible = false;
+            flagA = 0
+        }
+    }
+    if(event.key == 'b') {
+        if(flagB == 0) {
+            eye2.visible = true;
+            flagB = 1
+        }else {
+            eye2.visible = false;
+            flagB = 0
+        }
+    }
+    if(event.key == 'c') {
+        if(flagC == 0) {
+            nose.visible = true;
+            flagC = 1
+        }else {
+            nose.visible = false;
+            flagC = 0
+        }
+    }
+}
 
-
-// function onKeyDown(event) {
-//     circle.visible = true;
-//     square.visible = true;
-// 	if(event.key == 'a') {
-//         circle.fillColor = 'white';
-//         square.fillColor = 'yellow';
-//     }
-//     if(event.key == 'b') {
-//         circle.fillColor = 'blue';
-//         square.fillColor = 'blue';
-//     }
-//     if(event.key == 'c') {
-//         circle.fillColor = 'yellow';
-//         square.fillColor = 'blue';
-//     }
-//     if(event.key == 'd') {
-//         circle.fillColor = 'blue';
-//         square.fillColor = 'yellow';
-//     }
-//     if(event.key == 'e') {
-//         circle.fillColor = 'blue';
-//         square.fillColor = nuefll;
-//     }
-//     if(event.key == 'f') {
-//         circle.fillColor = 'yellow';
-//         square.fillColor = null;
-//     }
-// }
 

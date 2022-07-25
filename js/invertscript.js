@@ -1,12 +1,12 @@
 var square = new Path.Rectangle({
     position: view.center,
-    size: 500,
+    size: 1000,
   	visible: false
 });
 
 var circle = new Path.Circle({
     center: view.center,
-    radius: 100,
+    radius: 200,
   	visible: false
 });
 
