@@ -1,39 +1,47 @@
 var eye1 = new Path.Circle({
     center: [920, 430],
     radius: 30,
-    visible: false,
+    // visible: false,
     fillColor: 'white'
 });
 
 var eye2 = new Path.Circle({
     center: [980, 430],
     radius: 30,
-    visible: false,
+    // visible: false,
     fillColor: 'white'
 });
 
 var nose = new Path.Circle({
     center: [950, 460],
     radius: 30,
-    visible: false,
+    // visible: false,
     fillColor: 'white'
 });
 
 var mouth = new Path.Circle({
     center: [945, 509],
     radius: 30,
-    visible: false,
+    // visible: false,
     fillColor: 'white'
 });
 
 var chest = new Path({
-    segments: [[755, 648], [1028.5, 650], [1060, 840], [770, 840]],
+    segments: [[755, 610], [1000, 610], [1060,800], [770, 800]],
     fillColor: 'white',
     closed: true,
     strokeWidth: 3,
-    visible: false,
+    // visible: false,
     strokeJoin: 'round'
 });
+
+var group = new Group([eye1, eye2, nose, mouth, chest]);
+
+group.center = [500, 460];
+
+  function onMouseDrag(event) {
+	group.translate(event.delta)
+  }
 
 // var neck = new Path.Circle({
 //     center: [945, 509],

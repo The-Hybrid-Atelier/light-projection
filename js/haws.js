@@ -19,8 +19,6 @@ function drawGridCue(path, origin){
     segments: path, 
     position: origin.position
   })
-  contour.scale(origin.contourScale)
-  contour.simplify(5)
 
   grid.fitBounds(contour.bounds.expand(800))
   grid.scaling = new paper.Point(origin.gridScaling,origin.gridScaling)
@@ -29,105 +27,11 @@ function drawGridCue(path, origin){
   
   origin.bringToFront()
   contour.clipMask = origin.clipped
-}
-function drawInvertCue(path, origin){
-  path = _.map(path.data, function(p){ pt = p[0]; return new paper.Point(pt[0], pt[1])})
-  
-  prev = paper.project.getItems({name: "contour"})
-  _.each(prev, function(el, i) {
-    el.remove()
-  })
-
-  contour = new paper.Path({
-    name: "contour",
-    segments: path, 
-    position: origin.position,
-    strokeColor: 'white',
-    fillColor: 'white'
-  })
-
-var square = new Path.Rectangle({
-    position: view.center,
-    size: 300,
-    strokeColor: 'white', 
-    fillColor:'yellow'
-});
-
-// tool = new paper.Tool({
-//   onKeyDown: function(event) {
-//     if (event.key == 'a'){
-//       var scene = square.divide(contour);
-//       scene.fillColor = 'rgba(0, 0, 255, 0.2)';
-//       scene.strokeColor = 'red'
-//     }
-//     if (event.key == "b"){
-//       square.fillColor = 'blue'
-//       contour.fillColor = 'black'
-//     }
-//     if (event.key == "c"){
-//       square.fillColor = 'blue'
-//       contour.fillColor = 'yellow'
-//     }
-//     if (event.key == "d"){
-//       square.fillColor = 'black'
-//       contour.fillColor = 'black'
-//     }
-//   }
-//  })
-
-
-// color changes on key presses
-
-// tool = new paper.Tool({
-//   onKeyDown: function(event) {
-//     origin = paper.project.getItem({name: "origin"})
-
-//     if (event.key == "a"){
-//       square.fillColor = 'black'
-//       contour.fillColor = 'yellow'
-//     }
-//     if (event.key == "b"){
-//       square.fillColor = 'blue'
-//       contour.fillColor = 'black'
-//     }
-//     if (event.key == "c"){
-//       square.fillColor = 'blue'
-//       contour.fillColor = 'yellow'
-//     }
-//     if (event.key == "d"){
-//       square.fillColor = 'black'
-//       contour.fillColor = 'black'
-//     }
-//   }
-//  })
-
-// Boolean operations 
-
-var scene = square.divide(contour);
-  scene.fillColor = 'rgba(0, 0, 255, 0.2)';
-  // scene.strokeColor = 'red'
-  scene.translate(0,-300)
-
-var ground = square.intersect(contour);
-  ground.fillColor = 'purple';
-  // ground.strokeColor = 'red'
-
-var figure = square.exclude(contour);
-  figure.fillColor = 'rgba(0, 0, 255, 0.2)';
-  // figure.strokeColor = 'red'
-  figure.translate(0,300)
-
-
 
   contour.scale(origin.contourScale)
-  ground.scale(origin.contourScale)
-  figure.scale(origin.contourScale)
-  scene.scale(origin.contourScale)
   contour.simplify(5)
-  
-  origin.bringToFront()
-
 }
+
 $(function(){
   console.log("JS Main Function");
   // Create WebSocket connection.
@@ -166,8 +70,8 @@ $(function(){
       path = JSON.parse(event.data)
       // console.log(path)
       if("event" in path && path.event == "contour" && "data" in path){
-        // drawGridCue(path, origin);
-        drawInvertCue(path, origin);
+        drawGridCue(path, origin);
+        // drawInvertCue(path, origin);
       }
     }
     

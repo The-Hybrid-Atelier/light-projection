@@ -141,7 +141,9 @@ $(function(){
             
 
             origin = paper.project.getItem({name: "origin"})
-            origin.gridScaling = p
+            // origin.gridScaling = p
+          
+            paper.view.zoom = p
             
             }
   }
