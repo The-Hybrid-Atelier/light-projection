@@ -1,35 +1,49 @@
 var eye1 = new Path.Circle({
-    radius: 50,
-  	visible: false,
-    position: (0,500),
+    center: [920, 430],
+    radius: 30,
+    visible: false,
     fillColor: 'white'
 });
 
 var eye2 = new Path.Circle({
-    radius: 50,
-  	visible: false,
-    position: (0, 200),
+    center: [980, 430],
+    radius: 30,
+    visible: false,
     fillColor: 'white'
 });
 
 var nose = new Path.Circle({
-    center: view.center,
-    radius: 50,
-  	visible: false,
+    center: [950, 460],
+    radius: 30,
+    visible: false,
     fillColor: 'white'
 });
 
-// var mouth = new Path.Circle({
-//     center: view.center,
-//     radius: 50,
-//   	visible: true,
-//     position: (0, -800),
-//     fillColor: 'green'
-// });
+var mouth = new Path.Circle({
+    center: [945, 509],
+    radius: 30,
+    visible: false,
+    fillColor: 'white'
+});
+
+var neck = new Path.Circle({
+    center: [945, 509],
+    radius: 30,
+    visible: true,
+    fillColor: 'white'
+});
+
+var chest = new Path.Circle({
+    center: [945, 509],
+    radius: 30,
+    visible: true,
+    fillColor: 'white'
+});
 
 var flagA = 0
 var flagB = 0
 var flagC = 0
+var flagD = 0
 function onKeyDown(event) {
 	if(event.key == 'a') {
         if(flagA == 0) {
@@ -56,6 +70,15 @@ function onKeyDown(event) {
         }else {
             nose.visible = false;
             flagC = 0
+        }
+    }
+    if(event.key == 'd') {
+        if(flagD == 0) {
+            mouth.visible = true;
+            flagD = 1
+        }else {
+            mouth.visible = false;
+            flagD = 0
         }
     }
 }
