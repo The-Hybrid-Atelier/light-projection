@@ -1,214 +1,226 @@
 
-var eye1 = new Path.Circle({
-    center: [935, 435],
-    radius: 30,
-    visible: false,
-    fillColor: 'white'
-});
-
-var eye2 = new Path.Circle({
-    center: [990, 435],
-    radius: 25,
-    visible: false,
-    fillColor: 'white'
-});
-
-var nose = new Path.Circle({
-    center: [963, 460],
-    radius: 27,
-    visible: false,
-    fillColor: 'white'
-});
-
-var mouth = new Path.Circle({
-    center: [960, 510],
-    radius: 25,
-    visible: false,
-    fillColor: 'white'
-});
-
-// NECK SVG
-var neckData = 'M5 81L15 10L22 18L75 51L103 57L108 96H64L5 81Z';
-var neck = new Path(neckData);
-
-neck.strokeColor = 'white';
-neck.fillColor = 'white';
-neck.strokeWidth = 8;
-neck.position = [900, 550];
-// NECK SVG ENDS
-
-// CHEST SVG
-var chestData = 'M13 54L91 5L206 21L281 59L293 189L65 196L4 184V99L13 54Z';
-var chest = new Path(chestData);
-
-chest.strokeColor = 'white';
-chest.fillColor = 'white';
-chest.strokeWidth = 8;
-chest.position = [900, 680];
-// CHEST SVG ENDS
-
-// DRAG TO MOVE ALL SPOTLIGHTS 
-var group = new Group([eye1, eye2, nose, mouth, neck, chest]);
-
-  function onMouseDrag(event) {
-	group.translate(event.delta)
-  }
-
-var flagA = 0
-var flagB = 0
-var flagC = 0
-var flagD = 0
-var flagE = 0
-var flagF = 0
-function onKeyDown(event) {
-	if(event.key == 'a') {
-        if(flagA == 0) {
-            eye1.visible = true;
-            flagA = 1
-        }else {
-            eye1.visible = false;
-            flagA = 0
+URL = "ws://162.243.120.86:3034"
+function setupPaper(){
+    console.log("Setting up paper")
+    canvas = $('canvas')[0]
+    parent = $('canvas').parent()
+    $(canvas)
+     .attr('width', parent.width())
+     .attr('height', parent.height())
+    window.paper = new paper.PaperScope
+    paper.setup(canvas)
+    paper.view.zoom = 1
+    $(canvas)
+     .attr('width', parent.width())
+     .attr('height', parent.height())
+    paper.install(window)
+     // KEY CONTROLS
+   
+     
+    tool = new paper.Tool({
+     onKeyDown: function(event) {
+       origin = paper.project.getItem({name: "origin"})
+   
+       if (event.key == "enter"){
+         origin.capture = !origin.capture
+       }
+       if (event.key == "right"){
+         origin.contourScale *= 1.05
+       }
+       if (event.key == "left"){
+         origin.contourScale *= 0.95
+       }
+       if (event.key == "i"){
+        console.log("inverting", origin.clipped)
+        origin = paper.project.getItem({name: "origin"})
+        origin.clipped = !origin.clipped
+        origin.visible = !origin.visible
+       }
+       if (event.key == 'space') {
+           // Scale the path by 110%:
+           path.scale(1.1);
+           // Prevent the key event from bubbling
+           return false;
+         }
+       
+        if(event.key == 'a') {
+        eye1 = paper.project.getItem({name:'eye1'})
+        eye1.visible = !eye1.visible
+        }
+        if(event.key == 'b') {
+        eye2 = paper.project.getItem({name:'eye2'})
+        eye2.visible = !eye2.visible
+        }
+        if(event.key == 'c') {
+        nose = paper.project.getItem({name:'nose'})
+        nose.visible = !nose.visible
+        }
+        if(event.key == 'd') {
+        mouth = paper.project.getItem({name:'mouth'})
+        mouth.visible = !mouth.visible
+        }
+        if(event.key == 'e') {
+        neck = paper.project.getItem({name:'neck'})
+        neck.visible = !neck.visible
+        }
+        if(event.key == 'f') {
+        chest = paper.project.getItem({name:'chest'})
+        chest.visible = !chest.visible
         }
     }
-    if(event.key == 'b') {
-        if(flagB == 0) {
-            eye2.visible = true;
-            flagB = 1
-        }else {
-            eye2.visible = false;
-            flagB = 0
-        }
-    }
-    if(event.key == 'c') {
-        if(flagC == 0) {
-            nose.visible = true;
-            flagC = 1
-        }else {
-            nose.visible = false;
-            flagC = 0
-        }
-    }
-    if(event.key == 'd') {
-        if(flagD == 0) {
-            mouth.visible = true;
-            flagD = 1
-        }else {
-            mouth.visible = false;
-            flagD = 0
-        }
-    }
-    if(event.key == 'e') {
-        if(flagE == 0) {
-            neck.visible = true;
-            flagE = 1
-        }else {
-            neck.visible = false;
-            flagE = 0
-        }
-    }
-    if(event.key == 'f') {
-        if(flagF == 0) {
-            chest.visible = true;
-            flagF = 1
-        }else {
-            chest.visible = false;
-            flagF = 0
-        }
-    }
+    })
+    return paper
 }
 
+  
+//    MAIN FUNCTION
+   $(function(){
+     paper = setupPaper();
+     draw()
+     console.log("Websocket Function");
+     let socket = new WebSocket(URL);
+     socket.onopen = function(e) {
+       console.log("Listening to Cues");
+     }; 
+     socket.onclose = function(event) {
+       console.log('No longer listening to cues');
+     };
+     socket.onerror = function(error) {
+       console.log("error", error.message)
+     };
+     
 
-// var neck = new Path.Circle({
-//     center: [945, 509],
-//     radius: 30,
-//     // visible: true,
-//     fillColor: 'white'
-// });
+     var ctrl = new LaunchControl();
+    ctrl.open().then(function() {
+        ctrl.led("all", "off");
+    });
+    ctrl.on("message", function(e) {
 
-// START CODES FOR SHAPE SPOTLIGHTS
-// var eye1 = new Path.Circle({
-//     center: [920, 430],
-//     radius: 30,
-//     // visible: false,
-//     fillColor: 'white'
-// });
+        if (e.dataType == "pad" && e.track == 0){
+            message = {event: "LOG", cue: "SPOTLIGHT", timestamp: Date.now()}
+            socket.send(JSON.stringify(message))
+            eye1 = paper.project.getItem({name:'eye1'})
+            eye1.visible = !eye1.visible
+         }
 
-// var eye2 = new Path.Circle({
-//     center: [980, 430],
-//     radius: 30,
-//     // visible: false,
-//     fillColor: 'white'
-// });
+         if (e.dataType == "pad" && e.track == 1){
+            eye2 = paper.project.getItem({name:'eye2'})
+            eye2.visible = !eye2.visible
+         }
 
-// var nose = new Path.Circle({
-//     center: [950, 460],
-//     radius: 30,
-//     // visible: false,
-//     fillColor: 'white'
-// });
+         if (e.dataType == "pad" && e.track == 2){
+            nose = paper.project.getItem({name:'nose'})
+            nose.visible = !nose.visible
+         }
 
-// var mouth = new Path.Circle({
-//     center: [945, 509],
-//     radius: 30,
-//     // visible: false,
-//     fillColor: 'white'
-// });
+         if (e.dataType == "pad" && e.track == 3){
+            mouth = paper.project.getItem({name:'mouth'})
+            mouth.visible = !mouth.visible
+         }
 
-// var chest = new Path({
-//     segments: [[850, 510], [920, 520], [945, 525], [1050, 610], [735, 610]],
-//     fillColor: 'white',
-//     closed: true,
-//     strokeWidth: 3,
-//     // visible: false,
-//     strokeJoin: 'round'
-// });
+         if (e.dataType == "pad" && e.track == 4){
+            neck = paper.project.getItem({name:'neck'})
+            neck.visible = !neck.visible
+         }
 
-// var neck = new Path({
-//     segments: [[745, 610], [1020, 610], [1050,780], [735, 780]],
-//     fillColor: 'white',
-//     closed: true,
-//     strokeWidth: 3,
-//     strokeColor: 'red',
-//     visible: false,
-//     strokeJoin: 'round'
-// });
-// END CODE FOR SHAPE SPOTLIGHTS
-// // EYE1 SVG
-// var eye1 = new Path.Ellipse ({
-// strokeColor: 'white',
-// fillColor: 'white',
-// strokeWidth: 8,
-// position: [100, 100]
-// });
-// // EYE1 SVG ENDS
 
-// // EYE2 SVG
-// var eye2Data = 'M5 81L15 10L22 18L75 51L103 57L108 96H64L5 81Z';
-// var eye2 = new Path(eye2Data);
+         if (e.dataType == "pad" && e.track == 5){
+            chest = paper.project.getItem({name:'chest'})
+            chest.visible = !chest.visible
+         }
 
-// eye2.strokeColor = 'white';
-// eye2.fillColor = 'white';
-// eye2.strokeWidth = 8;
-// eye2.position = [900, 550];
-// // EYE2 SVG ENDS
+    })
+   })
 
-// // NOSE SVG
-// var noseData = 'M5 81L15 10L22 18L75 51L103 57L108 96H64L5 81Z';
-// var nose = new Path(neckData);
+function draw(){
+    var head = new paper.Path.Circle({
+        name: 'head',
+        center: new paper.Point(935, 330),
+        radius: 30
+        // fillColor: 'orange',
+        // visible: false
+    });
 
-// nose.strokeColor = 'white';
-// nose.fillColor = 'white';
-// nose.strokeWidth = 8;
-// nose.position = [900, 550];
-// // NOSE SVG ENDS
+    var eye1 = new paper.Path.Circle({
+        name: 'eye1',
+        center: new paper.Point(935, 435),
+        radius: 30,
+        // visible: false,
+        fillColor: 'white'
+    });
 
-// // MOUTH SVG
-// var mouthData = 'M5 81L15 10L22 18L75 51L103 57L108 96H64L5 81Z';
-// var mouth = new Path(mouthData);
+    // var eye2 = new paper.Path.Circle({
+    //     name: 'eye2',
+    //     center: new paper.Point(990, 435),
+    //     radius: 25,
+    //     // visible: false,
+    //     fillColor: 'white'
+    // });
 
-// mouth.strokeColor = 'white';
-// mouth.fillColor = 'white';
-// mouth.strokeWidth = 8;
-// mouth.position = [900, 550];
-// // MOUTH SVG ENDS
+    var nose = new paper.Path.Circle({
+        name: 'nose',
+        center: new paper.Point(968, 460),
+        radius: 27,
+        // visible: false,
+        fillColor: 'white'
+    });
 
+    var mouth = new paper.Path.Circle({
+        name: 'mouth',
+        center: new paper.Point(963, 507),
+        radius: 25,
+        // visible: false,
+        fillColor: 'white'
+    });
+
+    // NECK SVG
+    var neckData = 'M5 75L16.5 7.5L30 17L83 50L111 56V102L72 95L5 75Z';
+    var neck = new paper.Path(neckData);
+
+    neck.name = 'neck';
+    neck.strokeColor = 'white';
+    neck.fillColor = 'white';
+    neck.strokeWidth = 8;
+    neck.position = [900, 555];
+    // neck.visible = false;
+    // NECK SVG ENDS
+
+    // CHEST SVG
+    var chestData = 'M79 203L4 200.5V142L11.5 74.5L28 49L66 28L96.5 5L220 28L280 58.5L307 196L79 203Z';
+    var chest = new paper.Path(chestData);
+
+    chest.name = 'chest';
+    chest.strokeColor = 'white';
+    chest.fillColor = 'white';
+    chest.strokeWidth = 8;
+    chest.position = [900, 680];
+    // chest.visible = false;
+    // CHEST SVG ENDS
+
+
+    // EYE2 SVG
+    var eye2Data = 'M0.5 23.5C0.500546 -1.90735e-06 26.4998 0 26.4998 0V54C26.4998 54 0.499454 47 0.5 23.5Z';
+    var eye2 = new paper.Path(eye2Data);
+
+    eye2.name = 'eye2';
+    eye2.strokeColor = 'white';
+    eye2.fillColor = 'white';
+    eye2.strokeWidth = 0;
+    eye2.position = [985, 435];
+    // eye2.visible = false;
+    // EYE2 SVG ENDS
+
+    
+
+    // DRAG TO MOVE ALL SPOTLIGHTS 
+
+
+    var group = new paper.Group([head, eye1, eye2, nose, mouth, neck, chest]);
+    group.name = "spotlight-cues"
+
+
+
+    group.onMouseDrag = function(event) {
+        group.translate(event.delta)
+    }
+}

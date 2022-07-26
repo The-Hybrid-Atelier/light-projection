@@ -7,6 +7,10 @@ import json
 import libraries.config as config
 from libraries.haws import *
 
+CALIBRATED = True
+BACKGROUND = 63
+SHELF = 74
+
 # Closer-in minimum depth, disparity range is doubled (from 95 to 190):
 extended_disparity = False
 # Better accuracy for longer distance, fractional disparity 32-levels:
@@ -176,9 +180,7 @@ with dai.Device(pipeline) as device:
         cv2.namedWindow(window_name)
 
 
-        CALIBRATED = True
-        BACKGROUND = 60
-        SHELF = 67
+        
         
 
         if CALIBRATED:

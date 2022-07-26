@@ -21,12 +21,13 @@ function setupPaper(){
 
     if (event.key == "enter"){
       origin.capture = !origin.capture
+      origin.fillColor = null
     }
     if (event.key == "right"){
-      origin.contourScale *= 1.1
+      origin.contourScale *= 1.15
     }
     if (event.key == "left"){
-      origin.contourScale *= 0.9
+      origin.contourScale *= 0.85
     }
     if (event.key == "i"){
      origin = paper.project.getItem({name: "origin"})
@@ -85,36 +86,71 @@ $(function(){
     if (e.dataType == "knob1" && e.track == 0){
       console.log("I AM DETECTING KNOB1");
       console.log(e.value)
-      if(e.value < 64 && e.value%8 == 0)
+      if(e.value < 64)
       {
-        for (var row_rects = 0; row_rects < 8; row_rects++){
-          // rects[e.value].selected = true;
-          if(rects[e.value + row_rects].fillColor != "white")
-              rects[e.value + row_rects].fillColor = "grey";
-          if (rect_value != -1){
-              rects[rect_value + row_rects].selected = false;
-              if(rects[rect_value +row_rects].fillColor != "white")
-                  rects[rect_value +row_rects].fillColor = "black";}
-            }
-          rect_value = e.value;
+        if (!clicked_values.includes(rect_value)){
+          rects[e.value].fillColor = "pink";
+          if (rect_value != -1)
+          {
+            rects[rect_value].fillColor = "black";
+          }
+        }
+
+        if (clicked_values.includes(rect_value)){
+          rects[e.value].fillColor = "pink";
+          if (rect_value != -1)
+          {
+            rects[rect_value].fillColor = "white";
+          }
+        }
+
+        rect_value = e.value
       }
+    
+      // if(e.value < 64 && e.value%8 == 0)
+      // {
+      //   for (var row_rects = 0; row_rects < 8; row_rects++){
+      //     // rects[e.value].selected = true;
+      //     if(rects[e.value + row_rects].fillColor != "white")
+      //         rects[e.value + row_rects].strokeColor = "blue";
+      //     if (rect_value != -1){
+      //         rects[rect_value + row_rects].selected = false;
+      //         if(rects[rect_value +row_rects].fillColor != "white")
+      //             rects[rect_value +row_rects].fillColor = "black";}
+      //             rects[rect.value + row_rects].strokeColor = "white";
+      //       }
+      //     rect_value = e.value;
+      // }
     }
  //USE BUTTONS TO CHOOSE COLUMNS
    if (e.dataType == "pad"){
-    console.log("I AM DETECTING PAD", e.track);
-    if (clicked_values.includes(rect_value + e.track))
+    console.log("I AM DETECTING PAD", e.track, clicked_values, rect_value);
+    if (clicked_values.includes(rect_value))
     {
-     rects[rect_value + e.track].fillColor = "black";
+     rects[rect_value].fillColor = "black";
      ctrl.led(e.track, "off");
-     var index = clicked_values.indexOf(rect_value + e.track);
+     var index = clicked_values.indexOf(rect_value);
      clicked_values.splice(index, 1);
     }
     else
     {
       ctrl.led(e.track, "dark red");
-      rects[rect_value + e.track].fillColor = "white";
-      clicked_values.push(rect_value + e.track);
+      rects[rect_value].fillColor = "white";
+      clicked_values.push(rect_value);
     }
+    // if (clicked_values.includes(rect_value + e.track))
+    // {
+    //  rects[rect_value + e.track].fillColor = "black";
+    //  ctrl.led(e.track, "off");
+    //  var index = clicked_values.indexOf(rect_value + e.track);
+    //  clicked_values.splice(index, 1);
+    // }
+    // else
+    // {
+    //   ctrl.led(e.track, "dark red");
+    //   rects[rect_value + e.track].fillColor = "white";
+    //   clicked_values.push(rect_value + e.track);
+    // }
   }
 
   //CHANGE STROKE WIDTH OF RECTANGLES
@@ -131,6 +167,7 @@ $(function(){
   }
   //ZOOM IN ON RECTANGLES
     if (e.dataType == "knob1" && e.track == 2){
+      var cap_was_off = false;
         console.log("DETECTING KNOB1 TRACK 2")
         // console.log(e.value)
         p = e.value/127.0 // [0,1]
@@ -138,12 +175,21 @@ $(function(){
         // console.log(p)
         if (p > 0.5 && p < 2){
             
-            
+          
 
             origin = paper.project.getItem({name: "origin"})
-            // origin.gridScaling = p
-          
-            paper.view.zoom = p
+            if (!origin.capture){
+              console.log("CAPTURE OFF")
+              origin.capture = !origin.capture
+              cap_was_off = true;
+              origin.gridScaling = p
+              // origin.capture = !origin.capture
+            }
+            else
+            {
+              origin.gridScaling = p
+            }
+            // grid.gridScaling  = p
             
             }
   }

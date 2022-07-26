@@ -21,10 +21,10 @@ function setupPaper(){
                 origin.capture = !origin.capture
               }
               if (event.key == "right"){
-                origin.contourScale *= 1.1
+                origin.contourScale *= 1.05
               }
               if (event.key == "left"){
-                origin.contourScale *= 0.9
+                origin.contourScale *= 0.95
               }
               if (event.key == "i"){
                origin = paper.project.getItem({name: "origin"})
@@ -81,33 +81,6 @@ function setupPaper(){
     size: 2000,
   	visible: false
 });
-  var ctrl = new LaunchControl();
-  ctrl.open().then(function() {
-    ctrl.led("all", "off");
-  });
-  ctrl.on("message", function(e) {
-    if (e.dataType == "pad" && e.track == 0){
-       square.fillColor = 'yellow'
-       contour.fillColor = 'blue'
-    }
-
-    if (e.dataType == "pad" && e.track == 1){
-       square.fillColor = 'blue'
-       contour.fillColor = 'yellow'
-    }
-
-    if (e.dataType == "knob1" && e.track == 0){
-       var raw = e.value;
-       var opacity_val = e.value/127.0;
-       square.opacity = opacity_val
-    }
-    if (e.dataType == "knob1" && e.track == 1){
-       var raw = e.value;
-       var opacity_val = e.value/127.0;
-       contour.opacity = opacity_val
-    }
-  })
-
 var ctrl = new LaunchControl();
   ctrl.open().then(function() {
     ctrl.led("all", "off");
@@ -134,14 +107,9 @@ var ctrl = new LaunchControl();
     //KNOB 0 and SQUARE OPACITY
     if (e.dataType == "knob1" && e.track == 0){
        var raw = e.value;
-       var opacity_val = e.value/127.0;
-       square.opacity = opacity_val
-    }
-    //KNOB 1 and CONTOUR OPACITY
-    if (e.dataType == "knob1" && e.track == 1){
-       var raw = e.value;
-       var opacity_val = e.value/127.0;
-       contour.opacity = opacity_val
+       var hue_value = e.value/127.0 * 360;
+       contour.fillColor.hue = hue_value;
+       square.fillColor.hue = contour.fillColor.hue + 180;
     }
   })
 
