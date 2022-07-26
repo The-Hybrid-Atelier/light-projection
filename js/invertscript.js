@@ -81,6 +81,32 @@ function setupPaper(){
     size: 2000,
   	visible: false
 });
+  var ctrl = new LaunchControl();
+  ctrl.open().then(function() {
+    ctrl.led("all", "off");
+  });
+  ctrl.on("message", function(e) {
+    if (e.dataType == "pad" && e.track == 0){
+       square.fillColor = 'yellow'
+       contour.fillColor = 'blue'
+    }
+
+    if (e.dataType == "pad" && e.track == 1){
+       square.fillColor = 'blue'
+       contour.fillColor = 'yellow'
+    }
+
+    if (e.dataType == "knob1" && e.track == 0){
+       var raw = e.value;
+       var opacity_val = e.value/127.0;
+       square.opacity = opacity_val
+    }
+    if (e.dataType == "knob1" && e.track == 1){
+       var raw = e.value;
+       var opacity_val = e.value/127.0;
+       contour.opacity = opacity_val
+    }
+  })
 
 var ctrl = new LaunchControl();
   ctrl.open().then(function() {
