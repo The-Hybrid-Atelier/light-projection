@@ -43,9 +43,8 @@ function setupPaper(){
                 contour.visible = true
                 origin.fillColor = null
                 contour.strokeColor = null
-                square.fillColor = 'black'
+                square.fillColor = 'blue'
                 contour.fillColor = 'yellow'
-                square.lightness = 1
               }
               if (event.key == "b"){
                 square.fillColor = 'blue'
@@ -83,6 +82,42 @@ function setupPaper(){
   	visible: false
 });
 
+var ctrl = new LaunchControl();
+  ctrl.open().then(function() {
+    ctrl.led("all", "off");
+  });
+  ctrl.on("message", function(e) {
+    //SWITCH 1
+    if (e.dataType == "pad" && e.track == 0){
+       square.fillColor = 'yellow'
+       contour.fillColor = 'blue'
+       square.visible = true
+       contour.visible = true
+       origin.fillColor = null
+       contour.strokeColor = null
+    }
+    //SWITCH 2
+    if (e.dataType == "pad" && e.track == 1){
+       square.fillColor = 'blue'
+       contour.fillColor = 'yellow'
+       square.visible = true
+       contour.visible = true
+       origin.fillColor = null
+       contour.strokeColor = null      
+    }
+    //KNOB 0 and SQUARE OPACITY
+    if (e.dataType == "knob1" && e.track == 0){
+       var raw = e.value;
+       var opacity_val = e.value/127.0;
+       square.opacity = opacity_val
+    }
+    //KNOB 1 and CONTOUR OPACITY
+    if (e.dataType == "knob1" && e.track == 1){
+       var raw = e.value;
+       var opacity_val = e.value/127.0;
+       contour.opacity = opacity_val
+    }
+  })
 
   })
   
