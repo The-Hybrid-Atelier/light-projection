@@ -1,3 +1,7 @@
+const urlString = window.location.search
+const urlParams = new URLSearchParams(urlString)
+console.log("PARAMS", urlParams.get('UID') )
+URL = "ws://162.243.120.86:3034"
 function setupPaper(){
  console.log("Setting up paper")
  canvas = $('canvas')[0]
@@ -74,9 +78,21 @@ $(function(){
   var rect_value = -1;
   var clicked_values = []
   var ctrl = new LaunchControl();
+  console.log("Websocket Function");
+ let socket = new WebSocket(URL);
+ socket.onopen = function(e) {
+   console.log("Listening to Cues");
+ }; 
+ socket.onclose = function(event) {
+   console.log('No longer listening to cues');
+ };
+ socket.onerror = function(error) {
+   console.log("error", error.message)
+ };
   ctrl.open().then(function() {
     ctrl.led("all", "off");
   });
+
 
   var oldStrokeWidth = 0;
   var newStrokeWidth = 0;
@@ -131,12 +147,16 @@ $(function(){
      ctrl.led(e.track, "off");
      var index = clicked_values.indexOf(rect_value);
      clicked_values.splice(index, 1);
+     message = {event: "LOG", timestamp: Date.now(), UID: ,  cue: "GRID", MIDI: e, action: "DESELECT", value: rect_value }
+     socket.send(JSON.stringify(message))  
     }
     else
     {
       ctrl.led(e.track, "dark red");
       rects[rect_value].fillColor = "white";
       clicked_values.push(rect_value);
+      message = {event: "LOG", timestamp: Date.now(), UID: urlParams.get('UID'),  cue: "GRID", MIDI: e, action: "SELECT", value: rect_value }
+      socket.send(JSON.stringify(message))  
     }
     // if (clicked_values.includes(rect_value + e.track))
     // {
@@ -162,6 +182,8 @@ $(function(){
             if (newStrokeWidth > oldStrokeWidth) {rects[iter].strokeWidth+= Math.abs(newStrokeWidth - oldStrokeWidth)}
             else if (newStrokeWidth < oldStrokeWidth){rects[iter].strokeWidth-= Math.abs(newStrokeWidth - oldStrokeWidth)}           
         }
+      message = {event: "LOG", timestamp: Date.now(), UID: urlParams.get('UID'),  cue: "GRID", MIDI: e, action: "CHANGE STROKE WIDTH", value: newStrokeWidth }
+      socket.send(JSON.stringify(message))  
     oldStrokeWidth = newStrokeWidth;
 
   }
@@ -192,6 +214,9 @@ $(function(){
             // grid.gridScaling  = p
             
             }
+
+      message = {event: "LOG", timestamp: Date.now(), UID: urlParams.get('UID'),  cue: "GRID", MIDI: e, action: "ZOOM", value: p }
+      socket.send(JSON.stringify(message))  
   }
 
   //CHANGE RECTANGLE OPACITY

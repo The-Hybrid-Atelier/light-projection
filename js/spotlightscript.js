@@ -1,3 +1,6 @@
+const urlString = window.location.search
+const urlParams = new URLSearchParams(urlString)
+console.log("PARAMS", urlParams.get('UID') )
 
 URL = "ws://162.243.120.86:3034"
 function setupPaper(){
@@ -97,36 +100,46 @@ function setupPaper(){
     ctrl.on("message", function(e) {
 
         if (e.dataType == "pad" && e.track == 0){
-            message = {event: "LOG", cue: "SPOTLIGHT", timestamp: Date.now()}
-            socket.send(JSON.stringify(message))
             eye1 = paper.project.getItem({name:'eye1'})
             eye1.visible = !eye1.visible
+            message = {event: "LOG", timestamp: Date.now(), UID: urlParams.get('UID') ,  cue: "SPOTLIGHT", action: "CHANGE VISIBILITY", value: "EYE1", visible: eye1.visible, MIDI: e}
+            socket.send(JSON.stringify(message))  
          }
 
          if (e.dataType == "pad" && e.track == 1){
             eye2 = paper.project.getItem({name:'eye2'})
             eye2.visible = !eye2.visible
+            message = {event: "LOG", timestamp: Date.now(), UID: urlParams.get('UID') ,  cue: "SPOTLIGHT", action: "CHANGE VISIBILITY", value: "EYE2",visible: eye2.visible, MIDI: e}
+            socket.send(JSON.stringify(message))  
          }
 
          if (e.dataType == "pad" && e.track == 2){
             nose = paper.project.getItem({name:'nose'})
             nose.visible = !nose.visible
+            message = {event: "LOG", timestamp: Date.now(), UID: urlParams.get('UID') ,  cue: "SPOTLIGHT", action: "CHANGE VISIBILITY", value: "NOSE", visible: nose.visible, MIDI: e}
+            socket.send(JSON.stringify(message))  
          }
 
          if (e.dataType == "pad" && e.track == 3){
             mouth = paper.project.getItem({name:'mouth'})
             mouth.visible = !mouth.visible
+            message = {event: "LOG", timestamp: Date.now(), UID: urlParams.get('UID') ,  cue: "SPOTLIGHT", action: "CHANGE VISIBILITY", value: "MOUTH", visible: mouth.visible, MIDI: e}
+            socket.send(JSON.stringify(message))  
          }
 
          if (e.dataType == "pad" && e.track == 4){
             neck = paper.project.getItem({name:'neck'})
             neck.visible = !neck.visible
+            message = {event: "LOG", timestamp: Date.now(), UID: urlParams.get('UID') ,  cue: "SPOTLIGHT", action: "CHANGE VISIBILITY", value: "NECK", visible: neck.visible, MIDI: e}
+            socket.send(JSON.stringify(message))  
          }
 
 
          if (e.dataType == "pad" && e.track == 5){
             chest = paper.project.getItem({name:'chest'})
             chest.visible = !chest.visible
+            message = {event: "LOG", timestamp: Date.now(), UID: urlParams.get('UID') ,  cue: "SPOTLIGHT", action: "CHANGE VISIBILITY", value: "CHEST", visible: chest.visible, MIDI: e}
+            socket.send(JSON.stringify(message))  
          }
 
     })

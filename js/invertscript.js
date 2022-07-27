@@ -1,3 +1,8 @@
+const urlString = window.location.search
+const urlParams = new URLSearchParams(urlString)
+console.log("PARAMS", urlParams.get('UID') )
+
+URL = "ws://162.243.120.86:3034"
 function setupPaper(){
     console.log("Setting up paper")
     canvas = $('canvas')[0]
@@ -81,6 +86,18 @@ function setupPaper(){
     size: 2000,
   	visible: false
 });
+
+console.log("Websocket Function");
+let socket = new WebSocket(URL);
+socket.onopen = function(e) {
+ console.log("Listening to Cues");
+}; 
+socket.onclose = function(event) {
+ console.log('No longer listening to cues');
+};
+socket.onerror = function(error) {
+ console.log("error", error.message)
+};
 var ctrl = new LaunchControl();
   ctrl.open().then(function() {
     ctrl.led("all", "off");
@@ -110,6 +127,8 @@ var ctrl = new LaunchControl();
        var hue_value = e.value/127.0 * 360;
        contour.fillColor.hue = hue_value;
        square.fillColor.hue = contour.fillColor.hue + 180;
+       message = {event: "LOG", timestamp: Date.now(), UID: urlParams.get('UID') ,  cue: "INVERT", MIDI: e, action: "CHANGE HUE", square_color: square.fillColor.hue, contour_color: contour.fillColor.hue }
+       socket.send(JSON.stringify(message))  
     }
   })
 
