@@ -10,6 +10,7 @@ from libraries.haws import *
 CALIBRATED = True
 BACKGROUND = 63
 SHELF = 74
+DELAY = 200
 
 # Closer-in minimum depth, disparity range is doubled (from 95 to 190):
 extended_disparity = False
@@ -228,5 +229,5 @@ with dai.Device(pipeline) as device:
         # frame = cv2.applyColorMap(frame, cv2.COLORMAP_JET)
         # cv2.imshow("disparity_color", frame)
 
-        if cv2.waitKey(1000) == ord('q'):
+        if cv2.waitKey(DELAY) == ord('q'):
             break
