@@ -25,6 +25,7 @@ function setupPaper(){
 
     if (event.key == "enter"){
       origin.capture = !origin.capture
+      origin.captureScale = origin.gridScaling
       origin.fillColor = null
     }
     if (event.key == "right"){
@@ -189,7 +190,7 @@ $(function(){
   }
   //ZOOM IN ON RECTANGLES
     if (e.dataType == "knob1" && e.track == 2){
-      var cap_was_off = false;
+      // var cap_was_off = false;
         console.log("DETECTING KNOB1 TRACK 2")
         // console.log(e.value)
         p = e.value/127.0 // [0,1]
@@ -200,20 +201,13 @@ $(function(){
           
 
             origin = paper.project.getItem({name: "origin"})
-            if (!origin.capture){
-              console.log("CAPTURE OFF")
-              origin.capture = !origin.capture
-              cap_was_off = true;
-              origin.gridScaling = p
-              // origin.capture = !origin.capture
+            origin.gridScaling = p * origin.captureScale
+
+            if(! origin.capture){
+              grid = paper.project.getItem({name: "grid"})
+              grid.scaling = new paper.Point(origin.gridScaling,origin.gridScaling)
             }
-            else
-            {
-              origin.gridScaling = p
-            }
-            // grid.gridScaling  = p
-            
-            }
+          
 
       message = {event: "LOG", timestamp: Date.now(), UID: urlParams.get('UID'),  cue: "GRID", MIDI: e, action: "ZOOM", value: p }
       socket.send(JSON.stringify(message))  

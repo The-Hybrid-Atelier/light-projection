@@ -54,6 +54,7 @@ $(function(){
       contourScale:  1,
       clipped: false,
       capture: true,
+      captureScale: 1,
       gridScaling: 1,
       onMouseDrag: function(event){
         this.translate(event.delta)
