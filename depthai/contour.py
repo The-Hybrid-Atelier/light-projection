@@ -228,5 +228,5 @@ with dai.Device(pipeline) as device:
         # frame = cv2.applyColorMap(frame, cv2.COLORMAP_JET)
         # cv2.imshow("disparity_color", frame)
 
-        if cv2.waitKey(100) == ord('q'):
+        if cv2.waitKey(1000) == ord('q'):
             break
