@@ -16,16 +16,18 @@ $(function(){
 })
 
 function updateCanvas(){
-  grid = paper.project.getItem({name: "grid"})
   contour = paper.project.getItem({name: "contour"})
   clipMask = paper.project.getItem({name: "clipMask"})
+  cues = paper.project.getItem({name: "spotlight-cues"})
   if(contour){
-    grid.fitBounds(contour.bounds.expand(800))
-    grid.scaling = new paper.Point(origin.gridScaling,origin.gridScaling)
-    clipMask.addChild(grid)
-    clipMask.addChild(contour)
-    contour.clipMask = origin.clipped
-    origin.bringToFront()
+  cues.fitBounds(contour.bounds.expand(new paper.Size(0, 0)))
+  cues.scaling = new paper.Point(origin.contourScale,origin.contourScale)
+  clipMask.addChild(contour)
+  clipMask.addChild(cues) 
+  origin.bringToFront()
+  contour.clipMask = origin.clipped
+  contour.scale(origin.contourScale)
+  contour.simplify(5)
   }
 }
 function initDrawing(){
@@ -44,7 +46,7 @@ function initDrawing(){
     position: paper.view.center
   })
   clipMask = new paper.Group({name:"clipMask"})
-  drawGrid()
+  drawSpotlightCues()
 }
 function socketConfiguration(socketDrawingFn){
   console.log("Socket Configuration");
@@ -55,7 +57,7 @@ function socketConfiguration(socketDrawingFn){
   }
   socket.log = function(data){
     header = {event: "LOG", timestamp: Date.now(), UID: urlParams.get('UID')}
-    header.cue = "GRID"
+    header.cue = "SPOTLIGHT"
     header = _.extend(header, data)
     socket.jsend(header)
   }
@@ -95,101 +97,57 @@ function socketConfiguration(socketDrawingFn){
   return socket
 }
 function midiBindings(){
-  var rect_value = -1;
-  var clicked_values = []
-  rects = paper.project.getItem({name: "grid"}).children
   var ctrl = new LaunchControl(); 
   ctrl.open().then(function() {
     ctrl.led("all", "off");
   });
 
-
   var oldStrokeWidth = 0;
   var newStrokeWidth = 0;
   var iter = 0;
   ctrl.on("message", function(e) {
-  //USE KNOB TO SCROLL THROUGH ROWS
-    if (e.dataType == "knob1" && e.track == 0){
-      console.log("I AM DETECTING KNOB1");
-      console.log(e.value)
-      if(e.value < 64)
-      {
-        if (!clicked_values.includes(rect_value)){
-          rects[e.value].fillColor = "pink";
-          if (rect_value != -1)
-          {
-            rects[rect_value].fillColor = "black";
-          }
-        }
+  if (e.dataType == "pad" && e.track == 0){
+      eye1 = paper.project.getItem({name:'eye1'})
+      eye1.visible = !eye1.visible
+      message = {action: "CHANGE VISIBILITY", value: "EYE1", visible: eye1.visible, MIDI: e}
+      socket.log(message)  
+   }
 
-        if (clicked_values.includes(rect_value)){
-          rects[e.value].fillColor = "pink";
-          if (rect_value != -1)
-          {
-            rects[rect_value].fillColor = "white";
-          }
-        }
+ if (e.dataType == "pad" && e.track == 1){
+    eye2 = paper.project.getItem({name:'eye2'})
+    eye2.visible = !eye2.visible
+    message = {action: "CHANGE VISIBILITY", value: "EYE2",visible: eye2.visible, MIDI: e}
+    socket.log(message)  
+ }
 
-        rect_value = e.value
-      }
-    }
-   // USE BUTTONS TO CHOOSE COLUMNS
-   if (e.dataType == "pad" && e.track == 0){
-    console.log("I AM DETECTING PAD", e.track, clicked_values, rect_value);
-    if (clicked_values.includes(rect_value))
-    {
-     rects[rect_value].fillColor = "black";
-     ctrl.led(e.track, "off");
-     var index = clicked_values.indexOf(rect_value);
-     clicked_values.splice(index, 1);
-     message = { MIDI: e, action: "DESELECT", value: rect_value }
-     socket.log(message)
-    }
-    else
-    {
-      ctrl.led(e.track, "dark red");
-      rects[rect_value].fillColor = "white";
-      clicked_values.push(rect_value);
-      message = { MIDI: e, action: "SELECT", value: rect_value }
-      socket.log(message) 
-    }
-  }
+ if (e.dataType == "pad" && e.track == 2){
+    nose = paper.project.getItem({name:'nose'})
+    nose.visible = !nose.visible
+    message = {action: "CHANGE VISIBILITY", value: "NOSE", visible: nose.visible, MIDI: e}
+    socket.log(message)   
+ }
 
-  //CHANGE STROKE WIDTH OF RECTANGLES
-  if (e.dataType == "knob1" && e.track == 1){
-        console.log("DETECTING KNOB1 TRACK 2")
-       for( iter = 0; iter < rects.length; iter++){
-            console.log(iter, rects.length, rects[iter], rects[iter].strokeWidth, newStrokeWidth, oldStrokeWidth);
-            newStrokeWidth = e.value;
-            if (newStrokeWidth > oldStrokeWidth) {rects[iter].strokeWidth+= Math.abs(newStrokeWidth - oldStrokeWidth)}
-            else if (newStrokeWidth < oldStrokeWidth){rects[iter].strokeWidth-= Math.abs(newStrokeWidth - oldStrokeWidth)}           
-        }
-    message = {MIDI: e, action: "CHANGE STROKE WIDTH", value: newStrokeWidth };
-    socket.log_end(message);
-    last_message_seen = message;
-    oldStrokeWidth = newStrokeWidth;
+ if (e.dataType == "pad" && e.track == 3){
+    mouth = paper.project.getItem({name:'mouth'})
+    mouth.visible = !mouth.visible
+    message = {action: "CHANGE VISIBILITY", value: "MOUTH", visible: mouth.visible, MIDI: e}
+    socket.log(message)  
+ }
 
-  }
-  //ZOOM IN ON RECTANGLES
-    if (e.dataType == "knob1" && e.track == 2){
-      // var cap_was_off = false;
-        
-        // console.log(e.value)
-        p = e.value/127.0 // [0,1]
-        p = p * 0.67 // [0, 2]
-        // console.log(p)
-        if (p > 0.15 && p < 0.67){
-          console.log("DETECTING KNOB1 TRACK 2", p)
-          
-            grid = paper.project.getItem({name: "grid"})
-            origin = paper.project.getItem({name: "origin"})
-            origin.gridScaling = p
-        }
+ if (e.dataType == "pad" && e.track == 4){
+    neck = paper.project.getItem({name:'neck'})
+    neck.visible = !neck.visible
+    message = {action: "CHANGE VISIBILITY", value: "NECK", visible: neck.visible, MIDI: e}
+    socket.log(message)  
+ }
 
-      message = {MIDI: e, action: "ZOOM", value: p };
-      socket.log_end(message);
-      last_message_seen = message;
-  }
+
+ if (e.dataType == "pad" && e.track == 5){
+    chest = paper.project.getItem({name:'chest'})
+    chest.visible = !chest.visible
+    message = {action: "CHANGE VISIBILITY", value: "CHEST", visible: chest.visible, MIDI: e}
+    socket.log(message)  
+ }
 
  });
 }
@@ -240,6 +198,30 @@ function keyBindings(){
           // Prevent the key event from bubbling
           return false;
         }
+      if(event.key == 'a') {
+        eye1 = paper.project.getItem({name:'eye1'})
+        eye1.visible = !eye1.visible
+        }
+      if(event.key == 'b') {
+      eye2 = paper.project.getItem({name:'eye2'})
+      eye2.visible = !eye2.visible
+      }
+      if(event.key == 'c') {
+      nose = paper.project.getItem({name:'nose'})
+      nose.visible = !nose.visible
+      }
+      if(event.key == 'd') {
+      mouth = paper.project.getItem({name:'mouth'})
+      mouth.visible = !mouth.visible
+      }
+      if(event.key == 'e') {
+      neck = paper.project.getItem({name:'neck'})
+      neck.visible = !neck.visible
+      }
+      if(event.key == 'f') {
+      chest = paper.project.getItem({name:'chest'})
+      chest.visible = !chest.visible
+      }
       }
     })
 }
@@ -260,24 +242,71 @@ function drawContour(){
   contour.scaling = origin.contourScale
   contour.simplify(5)
 }
-function drawGrid(){
-  var gridGroup = new paper.Group({name: "grid"})
-   var rects = [];
-   RECT_SIZE = 200
-   var i = 0;
-   var x = 0;
-   var y = 0;
-   for (x = 0; x < 8; x++) {
-       for (y = 0; y < 8; y++) {
-           rects[i] = new paper.Path.Rectangle({
-              parent: gridGroup,
-              from: new paper.Point(y * RECT_SIZE, x * RECT_SIZE), 
-              to: new paper.Point(RECT_SIZE + (y * RECT_SIZE), RECT_SIZE + (x * RECT_SIZE))
-             });
-           rects[i].strokeColor = "white";
-           rects[i].fillColor = "black";
-           rects[i].strokeWidth = 1;
-           i += 1;
-       }
-   }
+function drawSpotlightCues(){
+    var head = new paper.Path.Circle({
+        name: 'head',
+        center: new paper.Point(935, 330),
+        radius: 30
+    });
+
+    var eye1 = new paper.Path.Circle({
+        name: 'eye1',
+        center: new paper.Point(935, 435),
+        radius: 30,
+        fillColor: 'white'
+    });
+
+    var nose = new paper.Path.Circle({
+        name: 'nose',
+        center: new paper.Point(968, 460),
+        radius: 27,
+        fillColor: 'white'
+    });
+
+    var mouth = new paper.Path.Circle({
+        name: 'mouth',
+        center: new paper.Point(963, 507),
+        radius: 25,
+        fillColor: 'white'
+    });
+
+    // NECK SVG
+    var neckData = 'M5 75L16.5 7.5L30 17L83 50L111 56V102L72 95L5 75Z';
+    var neck = new paper.Path(neckData);
+
+    neck.name = 'neck';
+    neck.strokeColor = 'white';
+    neck.fillColor = 'white';
+    neck.strokeWidth = 8;
+    neck.position = [900, 555];
+    // NECK SVG ENDS
+
+    // CHEST SVG
+    var chestData = 'M79 203L4 200.5V142L11.5 74.5L28 49L66 28L96.5 5L220 28L280 58.5L307 196L79 203Z';
+    var chest = new paper.Path(chestData);
+
+    chest.name = 'chest';
+    chest.strokeColor = 'white';
+    chest.fillColor = 'white';
+    chest.strokeWidth = 8;
+    chest.position = [900, 680];
+    // CHEST SVG ENDS
+
+    // EYE2 SVG
+    var eye2Data = 'M0.5 23.5C0.500546 -1.90735e-06 26.4998 0 26.4998 0V54C26.4998 54 0.499454 47 0.5 23.5Z';
+    var eye2 = new paper.Path(eye2Data);
+
+    eye2.name = 'eye2';
+    eye2.strokeColor = 'white';
+    eye2.fillColor = 'white';
+    eye2.strokeWidth = 0;
+    eye2.position = [985, 435];
+    // EYE2 SVG ENDS
+    // DRAG TO MOVE ALL SPOTLIGHTS 
+    var group = new paper.Group([head, eye1, eye2, nose, mouth, neck, chest]);
+    group.name = "spotlight-cues"
+
+    group.onMouseDrag = function(event) {
+        group.translate(event.delta)
+    }
 }

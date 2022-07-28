@@ -16,15 +16,13 @@ $(function(){
 })
 
 function updateCanvas(){
-  grid = paper.project.getItem({name: "grid"})
   contour = paper.project.getItem({name: "contour"})
   clipMask = paper.project.getItem({name: "clipMask"})
   if(contour){
-    grid.fitBounds(contour.bounds.expand(800))
-    grid.scaling = new paper.Point(origin.gridScaling,origin.gridScaling)
-    clipMask.addChild(grid)
     clipMask.addChild(contour)
     contour.clipMask = origin.clipped
+    contour.scale(origin.contourScale)
+    contour.simplify(5)
     origin.bringToFront()
   }
 }
@@ -44,7 +42,11 @@ function initDrawing(){
     position: paper.view.center
   })
   clipMask = new paper.Group({name:"clipMask"})
-  drawGrid()
+  var square = new Path.Rectangle({
+    name: "square",
+    position: view.center,
+    size: 2000,
+    visible: false
 }
 function socketConfiguration(socketDrawingFn){
   console.log("Socket Configuration");
@@ -55,12 +57,12 @@ function socketConfiguration(socketDrawingFn){
   }
   socket.log = function(data){
     header = {event: "LOG", timestamp: Date.now(), UID: urlParams.get('UID')}
-    header.cue = "GRID"
+    header.cue = "INVERT"
     header = _.extend(header, data)
     socket.jsend(header)
   }
   socket.log_end = function(data){
-    if (data.action != last_message_seen.action)
+    if (data.square_color > last_message_seen.square_color + 10)
       socket.log(last_message_seen)
       socket.log(data)
 
@@ -95,101 +97,40 @@ function socketConfiguration(socketDrawingFn){
   return socket
 }
 function midiBindings(){
-  var rect_value = -1;
-  var clicked_values = []
-  rects = paper.project.getItem({name: "grid"}).children
   var ctrl = new LaunchControl(); 
   ctrl.open().then(function() {
     ctrl.led("all", "off");
   });
-
-
-  var oldStrokeWidth = 0;
-  var newStrokeWidth = 0;
-  var iter = 0;
-  ctrl.on("message", function(e) {
-  //USE KNOB TO SCROLL THROUGH ROWS
+    //SWITCH 1
+    if (e.dataType == "pad" && e.track == 0){
+       square.fillColor = 'yellow'
+       contour.fillColor = 'blue'
+       square.visible = true
+       contour.visible = true
+       origin.fillColor = null
+       contour.strokeColor = null
+    }
+    //SWITCH 2
+    if (e.dataType == "pad" && e.track == 1){
+       square.fillColor = 'blue'
+       contour.fillColor = 'yellow'
+       square.visible = true
+       contour.visible = true
+       origin.fillColor = null
+       contour.strokeColor = null      
+    }
+    //KNOB 0 and SQUARE OPACITY
     if (e.dataType == "knob1" && e.track == 0){
-      console.log("I AM DETECTING KNOB1");
-      console.log(e.value)
-      if(e.value < 64)
-      {
-        if (!clicked_values.includes(rect_value)){
-          rects[e.value].fillColor = "pink";
-          if (rect_value != -1)
-          {
-            rects[rect_value].fillColor = "black";
-          }
-        }
-
-        if (clicked_values.includes(rect_value)){
-          rects[e.value].fillColor = "pink";
-          if (rect_value != -1)
-          {
-            rects[rect_value].fillColor = "white";
-          }
-        }
-
-        rect_value = e.value
-      }
+       var raw = e.value;
+       var hue_value = e.value/127.0 * 360;
+       contour.fillColor.hue = hue_value;
+       square.fillColor.hue = contour.fillColor.hue + 180;
+       message = {MIDI: e, action: "CHANGE HUE", square_color: square.fillColor.hue, contour_color: contour.fillColor.hue }
+       socket.log_end(message);
+       last_message_seen = message;  
     }
-   // USE BUTTONS TO CHOOSE COLUMNS
-   if (e.dataType == "pad" && e.track == 0){
-    console.log("I AM DETECTING PAD", e.track, clicked_values, rect_value);
-    if (clicked_values.includes(rect_value))
-    {
-     rects[rect_value].fillColor = "black";
-     ctrl.led(e.track, "off");
-     var index = clicked_values.indexOf(rect_value);
-     clicked_values.splice(index, 1);
-     message = { MIDI: e, action: "DESELECT", value: rect_value }
-     socket.log(message)
-    }
-    else
-    {
-      ctrl.led(e.track, "dark red");
-      rects[rect_value].fillColor = "white";
-      clicked_values.push(rect_value);
-      message = { MIDI: e, action: "SELECT", value: rect_value }
-      socket.log(message) 
-    }
-  }
 
-  //CHANGE STROKE WIDTH OF RECTANGLES
-  if (e.dataType == "knob1" && e.track == 1){
-        console.log("DETECTING KNOB1 TRACK 2")
-       for( iter = 0; iter < rects.length; iter++){
-            console.log(iter, rects.length, rects[iter], rects[iter].strokeWidth, newStrokeWidth, oldStrokeWidth);
-            newStrokeWidth = e.value;
-            if (newStrokeWidth > oldStrokeWidth) {rects[iter].strokeWidth+= Math.abs(newStrokeWidth - oldStrokeWidth)}
-            else if (newStrokeWidth < oldStrokeWidth){rects[iter].strokeWidth-= Math.abs(newStrokeWidth - oldStrokeWidth)}           
-        }
-    message = {MIDI: e, action: "CHANGE STROKE WIDTH", value: newStrokeWidth };
-    socket.log_end(message);
-    last_message_seen = message;
-    oldStrokeWidth = newStrokeWidth;
-
-  }
-  //ZOOM IN ON RECTANGLES
-    if (e.dataType == "knob1" && e.track == 2){
-      // var cap_was_off = false;
-        
-        // console.log(e.value)
-        p = e.value/127.0 // [0,1]
-        p = p * 0.67 // [0, 2]
-        // console.log(p)
-        if (p > 0.15 && p < 0.67){
-          console.log("DETECTING KNOB1 TRACK 2", p)
-          
-            grid = paper.project.getItem({name: "grid"})
-            origin = paper.project.getItem({name: "origin"})
-            origin.gridScaling = p
-        }
-
-      message = {MIDI: e, action: "ZOOM", value: p };
-      socket.log_end(message);
-      last_message_seen = message;
-  }
+  
 
  });
 }
@@ -212,6 +153,8 @@ function keyBindings(){
   tool = new paper.Tool({
     onKeyDown: function(event) {
       origin = paper.project.getItem({name: "origin"})
+      square = paper.project.getItem({name: "square"})
+
 
       if (event.key == "enter"){
         origin.capture = !origin.capture
@@ -240,6 +183,36 @@ function keyBindings(){
           // Prevent the key event from bubbling
           return false;
         }
+      if (event.key == "a"){
+        console.log("REGISTERING KEY DOWN")
+        square.visible = true
+        contour.visible = true
+        origin.fillColor = null
+        contour.strokeColor = null
+        square.fillColor = 'blue'
+        contour.fillColor = 'yellow'
+      }
+      if (event.key == "b"){
+        square.fillColor = 'blue'
+        contour.fillColor = 'blue'
+      }
+      if (event.key == "c"){
+        square.fillColor = 'yellow'
+        contour.fillColor = 'blue'
+      }
+      if (event.key == "d"){
+        square.fillColor = 'blue'
+        contour.fillColor = 'yellow'
+      }
+      if (event.key == "e"){
+        square.fillColor = null
+        contour.fillColor = 'blue'
+      }
+      if (event.key == "f"){
+        square.fillColor = null
+        contour.fillColor = 'yellow'
+      }
+
       }
     })
 }
@@ -260,24 +233,4 @@ function drawContour(){
   contour.scaling = origin.contourScale
   contour.simplify(5)
 }
-function drawGrid(){
-  var gridGroup = new paper.Group({name: "grid"})
-   var rects = [];
-   RECT_SIZE = 200
-   var i = 0;
-   var x = 0;
-   var y = 0;
-   for (x = 0; x < 8; x++) {
-       for (y = 0; y < 8; y++) {
-           rects[i] = new paper.Path.Rectangle({
-              parent: gridGroup,
-              from: new paper.Point(y * RECT_SIZE, x * RECT_SIZE), 
-              to: new paper.Point(RECT_SIZE + (y * RECT_SIZE), RECT_SIZE + (x * RECT_SIZE))
-             });
-           rects[i].strokeColor = "white";
-           rects[i].fillColor = "black";
-           rects[i].strokeWidth = 1;
-           i += 1;
-       }
-   }
-}
+
