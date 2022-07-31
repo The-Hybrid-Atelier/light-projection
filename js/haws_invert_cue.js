@@ -2,7 +2,7 @@ const urlString = window.location.search
 const urlParams = new URLSearchParams(urlString)
 console.log("PARAMS", urlParams.get('UID') )
 URL = "ws://162.243.120.86:3034"
-last_message_seen = null
+var last_message_seen = {}
 // MAIN FUNCTION
 
 $(function(){
@@ -21,12 +21,16 @@ function updateCanvas(){
   if(contour){
     clipMask.addChild(contour)
     contour.clipMask = origin.clipped
-    contour.scale(origin.contourScale)
-    contour.simplify(5)
     origin.bringToFront()
   }
 }
 function initDrawing(){
+  var square = new Path.Rectangle({
+    name: "square",
+    position: view.center,
+    size: 2000,
+    visible: false
+});
   origin = new paper.Path.Circle({
     name: "origin",
     radius: 10,
@@ -42,11 +46,6 @@ function initDrawing(){
     position: paper.view.center
   })
   clipMask = new paper.Group({name:"clipMask"})
-  var square = new Path.Rectangle({
-    name: "square",
-    position: view.center,
-    size: 2000,
-    visible: false
 }
 function socketConfiguration(socketDrawingFn){
   console.log("Socket Configuration");
@@ -62,10 +61,12 @@ function socketConfiguration(socketDrawingFn){
     socket.jsend(header)
   }
   socket.log_end = function(data){
-    if (data.square_color > last_message_seen.square_color + 10)
+    if (Math.abs(data.square_color - last_message_seen.square_color) > 10)
+    {
+      console.log("LOGGING")
       socket.log(last_message_seen)
       socket.log(data)
-
+    }
     //compare data against the last_message_seen
     // if its different, then log this message and the last message
     // else ignore it, but update last message
@@ -101,6 +102,7 @@ function midiBindings(){
   ctrl.open().then(function() {
     ctrl.led("all", "off");
   });
+  ctrl.on("message", function(e) {
     //SWITCH 1
     if (e.dataType == "pad" && e.track == 0){
        square.fillColor = 'yellow'
@@ -110,15 +112,6 @@ function midiBindings(){
        origin.fillColor = null
        contour.strokeColor = null
     }
-    //SWITCH 2
-    if (e.dataType == "pad" && e.track == 1){
-       square.fillColor = 'blue'
-       contour.fillColor = 'yellow'
-       square.visible = true
-       contour.visible = true
-       origin.fillColor = null
-       contour.strokeColor = null      
-    }
     //KNOB 0 and SQUARE OPACITY
     if (e.dataType == "knob1" && e.track == 0){
        var raw = e.value;
@@ -126,11 +119,13 @@ function midiBindings(){
        contour.fillColor.hue = hue_value;
        square.fillColor.hue = contour.fillColor.hue + 180;
        message = {MIDI: e, action: "CHANGE HUE", square_color: square.fillColor.hue, contour_color: contour.fillColor.hue }
-       socket.log_end(message);
        last_message_seen = message;  
     }
 
-  
+    if (e.dataType == "pad" && e.track == 1){
+      socket.log(message);
+   }
+    
 
  });
 }

@@ -2,7 +2,7 @@ const urlString = window.location.search
 const urlParams = new URLSearchParams(urlString)
 console.log("PARAMS", urlParams.get('UID') )
 URL = "ws://162.243.120.86:3034"
-last_message_seen = null
+var last_message_seen = {}
 // MAIN FUNCTION
 
 $(function(){
@@ -60,9 +60,13 @@ function socketConfiguration(socketDrawingFn){
     socket.jsend(header)
   }
   socket.log_end = function(data){
-    if (data.action != last_message_seen.action)
+   
+    if (data.action!= last_message_seen.action)
+    {
+      console.log("LOGGING")
       socket.log(last_message_seen)
       socket.log(data)
+    }
 
     //compare data against the last_message_seen
     // if its different, then log this message and the last message
@@ -144,6 +148,7 @@ function midiBindings(){
      clicked_values.splice(index, 1);
      message = { MIDI: e, action: "DESELECT", value: rect_value }
      socket.log(message)
+     last_message_seen = message
     }
     else
     {
@@ -152,6 +157,7 @@ function midiBindings(){
       clicked_values.push(rect_value);
       message = { MIDI: e, action: "SELECT", value: rect_value }
       socket.log(message) 
+      last_message_seen = message
     }
   }
 
@@ -164,10 +170,11 @@ function midiBindings(){
             if (newStrokeWidth > oldStrokeWidth) {rects[iter].strokeWidth+= Math.abs(newStrokeWidth - oldStrokeWidth)}
             else if (newStrokeWidth < oldStrokeWidth){rects[iter].strokeWidth-= Math.abs(newStrokeWidth - oldStrokeWidth)}           
         }
+        oldStrokeWidth = newStrokeWidth;
     message = {MIDI: e, action: "CHANGE STROKE WIDTH", value: newStrokeWidth };
     socket.log_end(message);
     last_message_seen = message;
-    oldStrokeWidth = newStrokeWidth;
+    
 
   }
   //ZOOM IN ON RECTANGLES

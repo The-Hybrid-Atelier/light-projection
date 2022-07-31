@@ -2,7 +2,7 @@ const urlString = window.location.search
 const urlParams = new URLSearchParams(urlString)
 console.log("PARAMS", urlParams.get('UID') )
 URL = "ws://162.243.120.86:3034"
-last_message_seen = null
+var last_message_seen = {}
 // MAIN FUNCTION
 
 $(function(){
@@ -20,21 +20,23 @@ function updateCanvas(){
   clipMask = paper.project.getItem({name: "clipMask"})
   cues = paper.project.getItem({name: "spotlight-cues"})
   if(contour){
-  cues.fitBounds(contour.bounds.expand(new paper.Size(0, 0)))
-  cues.scaling = new paper.Point(origin.contourScale,origin.contourScale)
-  clipMask.addChild(contour)
-  clipMask.addChild(cues) 
-  origin.bringToFront()
-  contour.clipMask = origin.clipped
-  contour.scale(origin.contourScale)
-  contour.simplify(5)
+    cues.fitBounds(contour.bounds.expand(new paper.Size(0, 0)))
+    cues.scaling = new paper.Point(origin.gridScaling,origin.gridScaling)
+    clipMask.addChild(contour)
+    clipMask.addChild(cues)
+    origin.bringToFront()
+    contour.clipMask = origin.clipped
+    contour.scale(origin.gridScaling)
+    
+
+  
   }
 }
 function initDrawing(){
   origin = new paper.Path.Circle({
     name: "origin",
     radius: 10,
-    fillColor: "white",
+    fillColor: "blue",
     contourScale:  1,
     clipped: false,
     capture: true,
@@ -47,6 +49,7 @@ function initDrawing(){
   })
   clipMask = new paper.Group({name:"clipMask"})
   drawSpotlightCues()
+
 }
 function socketConfiguration(socketDrawingFn){
   console.log("Socket Configuration");
@@ -173,24 +176,18 @@ function keyBindings(){
 
       if (event.key == "enter"){
         origin.capture = !origin.capture
-        origin.captureScale = origin.gridScaling
-        origin.fillColor = null
       }
       if (event.key == "right"){
         origin.contourScale *= 1.15
       }
       if (event.key == "left"){
-        origin.contourScale *= 0.85
-      }
-      if (event.key == "["){
-        origin.gridScaling *= 1.15
-      }
-      if (event.key == "]"){
-        origin.gridScaling *= 0.85
+        origin.contourScale *= 0.75
       }
       if (event.key == "i"){
-        origin = paper.project.getItem({name: "origin"})
-        origin.clipped = !origin.clipped
+       console.log("inverting", origin.clipped)
+       origin = paper.project.getItem({name: "origin"})
+       origin.clipped = !origin.clipped
+       origin.visible = !origin.visible
       }
       if (event.key == 'space') {
           // Scale the path by 110%:
@@ -302,8 +299,16 @@ function drawSpotlightCues(){
     eye2.strokeWidth = 0;
     eye2.position = [985, 435];
     // EYE2 SVG ENDS
+
+
+    var bottom = new paper.Path.Circle({
+      name: 'bottom',
+      center: new paper.Point(848, 805),
+      radius: 30,
+      fillColor: null
+  });
     // DRAG TO MOVE ALL SPOTLIGHTS 
-    var group = new paper.Group([head, eye1, eye2, nose, mouth, neck, chest]);
+    var group = new paper.Group([head, eye1, eye2, nose, mouth, neck, chest, bottom]);
     group.name = "spotlight-cues"
 
     group.onMouseDrag = function(event) {
